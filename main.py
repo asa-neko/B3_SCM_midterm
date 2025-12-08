@@ -12,6 +12,12 @@ print(df)
 
 df['ds'] = pd.to_datetime(df["ds"])
 
+# 欠損値補完
+# 今回は休業日が欠損値なので0で埋める
+df['y'] = df['y'].fillna(0)
+df['Bargain'] = df['Bargain'].fillna(0)
+df['Weather'] = df['Weather'].fillna(0)
+
 df.info()
 
 print(df.describe().T)
