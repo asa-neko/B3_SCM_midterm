@@ -48,7 +48,74 @@ def prediction(df, weekly_seasonal, yearly_seasonal, holidays, periods):
     fig2.show()
     input("Enterを押して表示終了")
 
+# モデル評価
+def model_eva(df, weekly_seasonal, yearly_seasonal, holidays, periods):
+    import pandas as pd
+    from prophet import Prophet
+    from sklearn.metrics import mean_absolute_error
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import japanize_matplotlib
+
+    # データの分割（最後の365日をテスト用に設定）
+    train_df = df.iloc[:-periods].copy()
+    test_df = df.iloc[-periods:].copy()
+
+    # モデルの構築
+    model = Prophet(weekly_seasonality=weekly_seasonal,yearly_seasonality=yearly_seasonal,holidays=holidays)
+    model.fit(train_df)
+
+    # テスト期間と同じ日付のデータフレームを作成
+    future_test = test_df[['ds','Weather','Bargain']].copy()
+    forecast = model.predict(future_test)
+
+    # MAE計算
+    comparison_df = pd.DataFrame({
+        'y_true': test_df['y'].values,
+        'y_pred': forecast['yhat'].values,
+    }).dropna()
+
+    mae = mean_absolute_error(comparison_df['y_true'], comparison_df['y_pred'])
+    print('----------------------------------------------------------------------------------')
+    print(f"モデルの精度(MAE): {mae:.2f}")
+    print(f"解釈：　予測は平均して、実績から±{mae:.0f}ズレている。")
+    mape = np.mean(np.abs((comparison_df['y_true'] - comparison_df['y_pred']) / comparison_df['y_true'])) * 100
+    print(f"モデルの精度 (MAPE): {mape:.2f}%")
+    print('----------------------------------------------------------------------------------')
+
+    # 視覚的な評価
+    plt.figure(figsize=(15, 6))
+
+    # 学習データ
+    plt.plot(
+        pd.to_datetime(train_df['ds']).values, 
+        train_df['y'].values, 
+        label='学習データ(Train)', color='gray', alpha=0.5
+    )
+
+    # 実測値（テストデータ）
+    plt.plot(
+        pd.to_datetime(test_df['ds']).values, 
+        test_df['y'].values, 
+        label='実測値(Test)', color='black'
+    )
+
+    # 予測値
+    plt.plot(
+        pd.to_datetime(forecast['ds']).values, 
+        forecast['yhat'].values, 
+        label='予測値(Forecast)', color='blue', alpha=0.8
+    )
+
+    plt.title('学習データ vs テストデータ vs 予測値')
+    plt.xlabel('Date')
+    plt.ylabel('Sales')
+    plt.legend()
+    plt.grid(True) 
+    plt.show()
+
 import pandas as pd
 df = read_excel("data/data.xlsx")
 df['ds'] = pd.to_datetime(df["ds"])
-prediction(df, True, True, None, 365)
+model_eva(df, True, True, None, 365)
+
