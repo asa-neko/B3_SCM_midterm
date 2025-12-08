@@ -14,7 +14,7 @@ df['ds'] = pd.to_datetime(df["ds"])
 
 df.info()
 
-df.describe().T
+print(df.describe().T)
 
 # 時系列プロット
 lb.plot_line(df['ds'], df['y'], "timeline", "data")
