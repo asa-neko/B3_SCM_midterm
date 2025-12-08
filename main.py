@@ -12,6 +12,10 @@ print(df)
 
 df['ds'] = pd.to_datetime(df["ds"])
 
+df.info()
+
+df.describe().T
+
 # 時系列プロット
 lb.plot_line(df['ds'], df['y'], "timeline", "data")
 
@@ -51,4 +55,4 @@ h3 = pd.DataFrame({
 events = pd.concat((h1,h2,h3))
 
 # イベント効果のみ考慮した需要予測
-lb.prediction(df, False, False, events, 365)
+lb.prediction(df, True, True, events, 365)
